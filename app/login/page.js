@@ -16,9 +16,9 @@ export default function Login() {
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     );
-    const { error } = await sb.auth.signInWithOtp({
+        const { error } = await sb.auth.signInWithOtp({
       email: email.trim().toLowerCase(),
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` }
+      options: { emailRedirectTo: 'https://enky-sdr-dashboard-production.up.railway.app/auth/callback' }
     });
     if (error) { setEtat('erreur'); setMsg(error.message); }
     else { setEtat('envoye'); }
