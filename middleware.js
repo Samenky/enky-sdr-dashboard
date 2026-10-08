@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
-// Toute page hors /login exige une session valide ET un email autorise.
+const SITE = 'https://enky-sdr-dashboard-production.up.railway.app';
+
 export async function middleware(request) {
   let response = NextResponse.next({ request });
 
@@ -25,21 +26,12 @@ export async function middleware(request) {
     .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
 
   const path = request.nextUrl.pathname;
-  const isPublic = path.startsWith('/login') || path.startsWith('/auth');
+  if (path.startsWith('/login') || path.startsWith('/auth')) return response;
 
-  if (!isPublic) {
-    if (!user) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/login';
-      return NextResponse.redirect(url);
-    }
-    // Filet de securite : meme avec une session valide, l email doit etre dans la liste.
-    if (allowed.length && !allowed.includes((user.email || '').toLowerCase())) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/login';
-      url.searchParams.set('refus', '1');
-      return NextResponse.redirect(url);
-    }
+  if (!user) return NextResponse.redirect(SITE + '/login');
+
+  if (allowed.length && !allowed.includes((user.email || '').toLowerCase())) {
+    return NextResponse.redirect(SITE + '/login?refus=1');
   }
   return response;
 }
