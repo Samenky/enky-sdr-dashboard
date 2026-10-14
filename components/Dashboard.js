@@ -43,6 +43,7 @@ const GABARIT = `
     <button class="tab" role="tab" data-p="origin">Origine des appels</button>
     <button class="tab" role="tab" data-p="when">Quand &amp; comment</button>
     <button class="tab" role="tab" data-p="trust">Fiabilit&eacute;</button>
+    <button class="tab" role="tab" data-p="rythme">Rythme</button>
   </div>
 </div></div>
 
