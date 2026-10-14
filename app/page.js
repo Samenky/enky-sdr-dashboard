@@ -1,5 +1,4 @@
 import { chargerDonnees } from '@/lib/requetes';
-import { supabaseSession } from '@/lib/supabase-server';
 import { nomSdr } from '@/lib/sdr';
 import Dashboard from '@/components/Dashboard';
 
@@ -8,8 +7,6 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export default async function Page() {
-  const { data: { user } } = await supabaseSession().auth.getUser();
-
   let donnees = null, erreur = null;
   try { donnees = await chargerDonnees(); }
   catch (e) { erreur = e.message; }
@@ -29,5 +26,5 @@ export default async function Page() {
   }
 
   const sdrs = (donnees.sdrs || []).map(nomSdr);
-  return <Dashboard d={donnees} sdrs={sdrs} email={user?.email || ''} />;
+  return <Dashboard d={donnees} sdrs={sdrs} email="" />;
 }

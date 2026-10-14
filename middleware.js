@@ -1,39 +1,27 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
 
 const SITE = 'https://enky-sdr-dashboard-production.up.railway.app';
 
+async function sha256Hex(valeur) {
+  const data = new TextEncoder().encode(valeur);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(digest))
+    .map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 export async function middleware(request) {
-  let response = NextResponse.next({ request });
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        getAll() { return request.cookies.getAll(); },
-        setAll(list) {
-          list.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
-          list.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
-        }
-      }
-    }
-  );
-
-  const { data: { user } } = await supabase.auth.getUser();
-  const allowed = (process.env.ALLOWED_EMAILS || '')
-    .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-
   const path = request.nextUrl.pathname;
-  if (path.startsWith('/login') || path.startsWith('/auth')) return response;
-
-  if (!user) return NextResponse.redirect(SITE + '/login');
-
-  if (allowed.length && !allowed.includes((user.email || '').toLowerCase())) {
-    return NextResponse.redirect(SITE + '/login?refus=1');
+  if (path.startsWith('/login') || path.startsWith('/api/auth')) {
+    return NextResponse.next();
   }
-  return response;
+
+  const attendu = await sha256Hex(process.env.ACCESS_CODE || '');
+  const cookie = request.cookies.get('sdr_auth')?.value;
+
+  if (!cookie || cookie !== attendu) {
+    return NextResponse.redirect(SITE + '/login');
+  }
+  return NextResponse.next();
 }
 
 export const config = {

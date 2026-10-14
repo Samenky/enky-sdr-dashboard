@@ -19,7 +19,6 @@ export default function Dashboard({ d, sdrs, email }) {
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <div style={{ position: 'fixed', top: 12, right: 18, zIndex: 60, fontSize: 12.5 }}>
         <form action="/deconnexion" method="post" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ color: '#4E626C' }}>{email}</span>
           <button type="submit" style={{
             border: '1px solid #D2CEC9', background: '#fff', color: '#06303F', cursor: 'pointer',
             font: '600 12px/1 "Plus Jakarta Sans",sans-serif', padding: '7px 11px', borderRadius: 9999

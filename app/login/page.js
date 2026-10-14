@@ -1,27 +1,20 @@
 'use client';
 import { useState } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
   const [etat, setEtat] = useState('repos');
-  const [msg, setMsg] = useState('');
-  const refus = typeof window !== 'undefined' &&
-    new URLSearchParams(window.location.search).get('refus');
 
   async function envoyer(e) {
     e.preventDefault();
     setEtat('envoi');
-    const sb = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    );
-        const { error } = await sb.auth.signInWithOtp({
-      email: email.trim().toLowerCase(),
-      options: { emailRedirectTo: 'https://enky-sdr-dashboard-production.up.railway.app/auth/callback' }
+    const r = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code })
     });
-    if (error) { setEtat('erreur'); setMsg(error.message); }
-    else { setEtat('envoye'); }
+    if (r.ok) { window.location.href = '/'; }
+    else { setEtat('erreur'); }
   }
 
   return (
@@ -29,31 +22,18 @@ export default function Login() {
       <div style={S.carte}>
         <div style={S.marque}>enky<sup style={S.sup}>®</sup></div>
         <h1 style={S.titre}>Performance SDR</h1>
-        <p style={S.sous}>Accès réservé à la direction commerciale.</p>
+        <p style={S.sous}>Accès réservé. Saisis le code fourni par Sam.</p>
 
-        {refus && (
-          <div style={S.refus}>
-            Cette adresse n'a pas accès au tableau de bord. Demande à Sam de l'ajouter.
-          </div>
-        )}
-
-        {etat === 'envoye' ? (
-          <div style={S.ok}>
-            <b>Lien envoyé.</b> Ouvre ta boîte mail et clique sur le lien pour entrer.
-            Il expire dans une heure.
-          </div>
-        ) : (
-          <form onSubmit={envoyer}>
-            <label style={S.label} htmlFor="email">Ton adresse Enky</label>
-            <input id="email" type="email" required value={email} autoFocus
-              onChange={e => setEmail(e.target.value)}
-              placeholder="prenom@enky.com" style={S.input} />
-            <button type="submit" disabled={etat === 'envoi'} style={S.bouton}>
-              {etat === 'envoi' ? 'Envoi…' : 'Recevoir mon lien de connexion'}
-            </button>
-            {etat === 'erreur' && <div style={S.err}>{msg}</div>}
-          </form>
-        )}
+        <form onSubmit={envoyer}>
+          <label style={S.label} htmlFor="code">Code d'accès</label>
+          <input id="code" type="password" required value={code} autoFocus
+            onChange={e => setCode(e.target.value)}
+            style={S.input} />
+          <button type="submit" disabled={etat === 'envoi'} style={S.bouton}>
+            {etat === 'envoi' ? 'Vérification…' : 'Entrer'}
+          </button>
+          {etat === 'erreur' && <div style={S.err}>Code incorrect.</div>}
+        </form>
       </div>
     </main>
   );
@@ -74,9 +54,5 @@ const S = {
     marginBottom: 14, boxSizing: 'border-box' },
   bouton: { width: '100%', border: 0, background: '#06303F', color: '#fff', cursor: 'pointer',
     font: '700 15px/1 "Plus Jakarta Sans",sans-serif', padding: '14px', borderRadius: 9 },
-  ok: { background: '#FFF6DF', border: '1px solid #EBD9AC', borderRadius: 11, padding: '16px 18px',
-    fontSize: 14, lineHeight: 1.65, color: '#3F3417' },
-  refus: { background: '#FFF6DF', border: '1px solid #EBD9AC', borderRadius: 11, padding: '14px 16px',
-    fontSize: 13.5, lineHeight: 1.6, color: '#3F3417', marginBottom: 20 },
   err: { marginTop: 12, fontSize: 13, color: '#B2380F' }
 };
